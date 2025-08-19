@@ -8,9 +8,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 public class ProductController {
@@ -25,5 +27,18 @@ public class ProductController {
         BeanUtils.copyProperties(productRecordDto, productModel); //convertendo de dto para model usando essa biblioteca do spring
         return ResponseEntity.status(HttpStatus.CREATED).body(productRepository.save(productModel)); //configurando a resposta ao cliente
     }
+    @GetMapping("/products")
+    public ResponseEntity<List<ProductModel>> getAllProducts(){  //o retorno vai ser um responseEntity, mas uma lista de produtos
+        return ResponseEntity.status(HttpStatus.OK).body(productRepository.findAll()); //findAll, save são métodos do JPA
+    }
 
+    @GetMapping("/products/{id}")
+    public ResponseEntity<Object> getOneProduct(@PathVariable(value="id") UUID id){ //definido o tipo de retorno como object, pq podemos ter
+        //2 tipos de respostas
+        Optional<ProductModel> product0 = productRepository.findById(id); //findById é mais um metodo JPA
+        if(product0.isEmpty()) { //isEmpty é um metodo do Optional
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(product0.get());
+    }
 }
