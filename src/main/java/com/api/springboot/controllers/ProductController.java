@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
 public class ProductController {
     //neste caso estamos usando o repository junto com o controller
@@ -31,7 +34,17 @@ public class ProductController {
     }
     @GetMapping("/products")
     public ResponseEntity<List<ProductModel>> getAllProducts(){  //o retorno vai ser um responseEntity, mas uma lista de produtos
-        return ResponseEntity.status(HttpStatus.OK).body(productRepository.findAll()); //findAll, save são métodos do JPA
+        //acrescentando o hateoas, q vai retornar um campo a mais, no caso o link com detalhes do produto (getById)
+        List<ProductModel> productList = productRepository.findAll();
+        if(!productList.isEmpty()) { //se a lista nn estiver vazia, vamos passar pelo for, para montar o link de cada produto
+            for (ProductModel product : productList) {
+                UUID id = product.getIdProduct();
+                product.add(linkTo(methodOn(ProductController.class).getOneProduct(id)).withSelfRel());
+                //linkTo - Para qual endpoint foi redirecionar o cliente
+                //methodOn - qual é o controller que está o metodo, e qual o metodo em si
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(productList); //findAll, save são métodos do JPA
     }
 
     @GetMapping("/products/{id}")
@@ -41,6 +54,7 @@ public class ProductController {
         if(product0.isEmpty()) { //isEmpty é um metodo do Optional
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
         }
+        product0.get().add(linkTo(methodOn(ProductController.class).getAllProducts()).withSelfRel());
         return ResponseEntity.status(HttpStatus.OK).body(product0.get());
     }
 
