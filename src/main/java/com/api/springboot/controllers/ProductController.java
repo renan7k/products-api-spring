@@ -16,6 +16,8 @@ import java.util.UUID;
 
 @RestController
 public class ProductController {
+    //neste caso estamos usando o repository junto com o controller
+    //o ideal é sempre utilizar a service para intermediar essas outras 2 camadas
 
     @Autowired
     ProductRepository productRepository; //é um ponto de injeção, para termos acesso a todos os metodos JPA
@@ -40,5 +42,27 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
         }
         return ResponseEntity.status(HttpStatus.OK).body(product0.get());
+    }
+
+    @PutMapping("/products/{id}")
+    public ResponseEntity<Object> updateProduct(@PathVariable(value="id") UUID id,
+                                                @RequestBody @Valid ProductRecordDto productRecordDto){
+        Optional<ProductModel> product0 = productRepository.findById(id);
+        if(product0.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+        }
+        var productModel = product0.get(); //atribuindo ao objeto, o valor que já recebemos da base de dados (linha 48), pq o objeto já existe
+        BeanUtils.copyProperties(productRecordDto, productModel);
+        return ResponseEntity.status(HttpStatus.OK).body(productRepository.save(productModel));
+    }
+
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<Object> deleteProduct(@PathVariable(value = "id") UUID id) {
+        Optional<ProductModel> product0 = productRepository.findById(id);
+        if(product0.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+        }
+        productRepository.delete(product0.get()); //delete é comando do próprio JPA
+        return ResponseEntity.status(HttpStatus.OK).body("Product deleted sucessfuly");
     }
 }

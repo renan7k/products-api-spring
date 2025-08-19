@@ -1,6 +1,7 @@
 package com.api.springboot.models;
 
 import jakarta.persistence.*;
+import org.springframework.hateoas.RepresentationModel;
 
 
 import java.io.Serial;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "TB_PRODUCTS")
-public class ProductModel implements Serializable { //indica que é uma classe que pode passar por serializações
+public class ProductModel  extends RepresentationModel<ProductModel> implements Serializable { //indica que é uma classe que pode passar por serializações
     @Serial
     private static final long serialVersionUID = 1L;
 
